@@ -71,7 +71,7 @@ public final class Main {
 
         //TODO add here the entry point to your implementation
         Game game = new Game();
-        game.Actions(inputData, output);
+        game.actions(inputData, output);
 
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         objectWriter.writeValue(new File(filePath2), output);
