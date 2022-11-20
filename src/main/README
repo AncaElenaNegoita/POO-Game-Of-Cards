@@ -1,0 +1,10 @@
+// @CopyRight Negoita Anca-Elena, 321CA
+
+GwentStone- Joc interactiv cu carti
+-----------------------------------------------------------------------------------------
+
+Scopul acestui proiect este aprofundarea cunostintelor de baza in Java prin implementarea
+si folosirea metodelor si claselor necesare fiecarei actiuni.
+Un joc contine mai multe comenzi cu conditii diferite in functie de playerul curent sau
+outcome-ul dorit. Daca o comanda data are conditii care nu pot fi indeplinite, atunci se
+genreaza o eroare specifica in functie de caz.

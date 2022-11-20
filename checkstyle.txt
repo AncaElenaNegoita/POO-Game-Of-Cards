@@ -1,0 +1,13 @@
+Starting audit...
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\CommandHelpfulFunctions.java:4:8: Unused import - com.fasterxml.jackson.databind.node.NullNode. [UnusedImports]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\CommandHelpfulFunctions.java:166:28: Parameter countRounds should be final. [FinalParameters]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Game.java:7:14: Using the '.*' form of import should be avoided - fileio.*. [AvoidStarImport]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Hero.java:11:13: Variable 'attackedAnotherCard' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Minion.java:8:13: Variable 'stunnedMinion' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Minion.java:9:13: Variable 'attackedAnotherCard' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Player.java:13:26: Variable 'deck' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Player.java:14:10: Variable 'hero' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Player.java:15:9: Variable 'mana' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] D:\Vs Code\Alte ex vs code\Tema1\tema\.\src\main\Player.java:16:26: Variable 'handCards' must be private and have accessor methods. [VisibilityModifier]
+Audit done.
+Checkstyle ends with 10 errors.
