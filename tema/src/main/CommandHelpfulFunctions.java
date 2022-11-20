@@ -217,6 +217,72 @@ public final class CommandHelpfulFunctions {
         return arrayNode;
     }
 
+    public Boolean isTankOrTableWithoutTank (final ArrayList<Minion> rowCards, final int y) {
+        int foundOne = 0;
+        for (int i = 0; i < rowCards.size(); i++) {
+            if (rowCards.get(i).getName().equals("Goliath") || rowCards.get(i).getName().equals("Warden")) {
+                foundOne = 1;
+                if (y == i) {
+                    return true;
+                }
+            }
+        }
+        if (foundOne == 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int verifyAttackConditions (final Minion attackerCard, final ActionsInput action,
+                                       final ObjectNode node, final int index) {
+        node.put("command", action.getCommand());
+        node.putPOJO("cardAttacker", new Coordinates(action.getCardAttacker()));
+        node.putPOJO("cardAttacked", new Coordinates(action.getCardAttacked()));
+
+        if (index == action.getCardAttacked().getX() || abs(index - 1) == action.getCardAttacked().getX()) {
+            node.put("error", "Attacked card does not belong to the enemy.");
+            return 0;
+        } else if (attackerCard.attackedAnotherCard) {
+            node.put("error", "Attacker card has already attacked this turn.");
+            return 0;
+        } else if (attackerCard.stunnedMinion) {
+            node.put("error", "Attacker card is frozen.");
+            return 0;
+        }
+        return 1;
+    }
+
+    public ObjectNode cardAttack (final ActionsInput action, final ObjectNode node,
+                                  final ArrayList<ArrayList<Minion>> gameTable, final int index) {
+        Minion attackedCard = gameTable.get(action.getCardAttacked().getX()).get(action.getCardAttacked().getY());
+        Minion attackerCard = gameTable.get(action.getCardAttacker().getX()).get(action.getCardAttacker().getY());
+
+        int verify = verifyAttackConditions(attackerCard, action, node, index);
+        if (verify == 1) {
+            if (action.getCardAttacked().getX() % 3 != 0) {
+                if (!isTankOrTableWithoutTank(gameTable.get(abs(index - 2)),
+                        action.getCardAttacked().getY())) {
+                    node.put("error", "Attacked card is not of type 'Tank'.");
+                } else {
+                    attackedCard.gotAttacked(attackerCard,
+                            gameTable.get(action.getCardAttacked().getX()), action.getCardAttacked().getY());
+                    node.removeAll();
+                }
+            } else {
+                if (!isTankOrTableWithoutTank(gameTable.get(abs(index - 2)),
+                        -1)) {
+                    node.put("error", "Attacked card is not of type 'Tank'.");
+                } else {
+                    attackedCard.gotAttacked(attackerCard,
+                            gameTable.get(action.getCardAttacked().getX()), action.getCardAttacked().getY());
+                    node.removeAll();
+                }
+            }
+        }
+        return node;
+    }
+
     public ObjectNode getCardAtPosition(final ActionsInput action, final ObjectNode node,
                                         final ArrayList<ArrayList<Minion>> gameTable) {
         node.put("command", action.getCommand());
@@ -231,6 +297,148 @@ public final class CommandHelpfulFunctions {
                 node.putPOJO("output", new Minion(gameTable.get(action.getX()).get(action.getY())));
             }
         }
+        return node;
+    }
+
+    public void switchCaseAbility (final Minion attackedCard, final Minion attackerCard,
+                                   final ActionsInput action, final ArrayList<ArrayList<Minion>> gameTable) {
+        switch (attackerCard.getName()) {
+            case "The Ripper":
+                attackedCard.theRipper(attackerCard);
+                break;
+
+            case "Miraj":
+                attackedCard.miraj(attackerCard);
+                break;
+
+            case "The Cursed One":
+                Boolean isTrue = attackedCard.theCursedOne(attackerCard);
+                if (isTrue) {
+                    gameTable.get(action.getCardAttacked().getX()).remove(action.getCardAttacked().getY());
+                }
+                break;
+        }
+    }
+
+    public ObjectNode cardUsesAbility(final ActionsInput action, final ObjectNode node,
+                                      final ArrayList<ArrayList<Minion>> gameTable, final int index) {
+        node.put("command", action.getCommand());
+        node.putPOJO("cardAttacker", new Coordinates(action.getCardAttacker()));
+        node.putPOJO("cardAttacked", new Coordinates(action.getCardAttacked()));
+
+        Minion attackedCard = gameTable.get(action.getCardAttacked().getX()).get(action.getCardAttacked().getY());
+        Minion attackerCard = gameTable.get(action.getCardAttacker().getX()).get(action.getCardAttacker().getY());
+
+        if (attackerCard.getName().equals("Disciple")) {
+            if (index != action.getCardAttacked().getX()
+                    && abs(index - 1) != action.getCardAttacked().getX()) {
+                node.put("error", "Attacked card does not belong to the current player.");
+            } else {
+                attackedCard.disciple();
+                node.removeAll();
+            }
+        } else {
+            int verify = verifyAttackConditions(attackerCard, action, node, index);
+            if (verify == 1) {
+                if (action.getCardAttacked().getX() % 3 != 0) {
+                    if (!isTankOrTableWithoutTank(gameTable.get(abs(index - 2)),
+                            action.getCardAttacked().getY())) {
+                        node.put("error", "Attacked card is not of type 'Tank'.");
+                    } else {
+                        switchCaseAbility(attackedCard, attackerCard, action, gameTable);
+                        node.removeAll();
+                    }
+                } else {
+                    if (!isTankOrTableWithoutTank(gameTable.get(abs(index - 2)),
+                            -1)) {
+                        node.put("error", "Attacked card is not of type 'Tank'.");
+                    } else {
+                        switchCaseAbility(attackedCard, attackerCard, action, gameTable);
+                        node.removeAll();
+                    }
+                }
+            }
+        }
+        return node;
+    }
+
+    public ObjectNode useAttackHero (final ActionsInput action, final ObjectNode node, final Player player,
+                                     final int index, final ArrayList<ArrayList<Minion>> gameTable) {
+        node.put("command", action.getCommand());
+        node.putPOJO("cardAttacker", new Coordinates(action.getCardAttacker()));
+
+        Minion attackerCard = gameTable.get(action.getCardAttacker().getX()).get(action.getCardAttacker().getY());
+
+        if (attackerCard.attackedAnotherCard) {
+            node.put("error", "Attacker card has already attacked this turn.");
+        } else if (attackerCard.stunnedMinion) {
+            node.put("error", "Attacker card is frozen.");
+        } else {
+            if (!isTankOrTableWithoutTank(gameTable.get(abs(index - 2)), -1)) {
+                node.put("error", "Attacked card is not of type 'Tank'.");
+            } else {
+                player.hero.attackHero(attackerCard);
+                node.removeAll();
+            }
+        }
+        return node;
+    }
+
+    public ObjectNode useHeroAbility (final ActionsInput action, final ObjectNode node, Player player,
+                                      final ArrayList<ArrayList<Minion>> gameTable, final int index) {
+        node.put("command", action.getCommand());
+        int affectedRow = action.getAffectedRow();
+        node.put("affectedRow", affectedRow);
+
+        if (player.hero.getMana() > player.mana) {
+            node.put("error", "Not enough mana to use hero's ability.");
+        } else if (player.hero.attackedAnotherCard) {
+            node.put("error", "Hero has already attacked this turn.");
+        } else {
+
+            switch (player.hero.getName()) {
+                case "Lord Royce": //stun card cel mai mare damage
+                    if (index == affectedRow || abs(index - 1) == affectedRow) {
+                        node.put("error", "Selected row does not belong to the enemy.");
+                    } else {
+                        player.hero.lordRoyce(gameTable.get(affectedRow));
+                        player.mana -= player.hero.getMana();
+                        node.removeAll();
+                    }
+                    break;
+
+                case "Empress Thorina": //distruge carte cu cea mai mare viata
+                    if (index == affectedRow || abs(index - 1) == affectedRow) {
+                        node.put("error", "Selected row does not belong to the enemy.");
+                    } else {
+                        player.hero.empressThorina(gameTable.get(affectedRow));
+                        player.mana -= player.hero.getMana();
+                        node.removeAll();
+                    }
+                    break;
+
+                case "King Mudface": //+1 viata pe tot randul
+                    if (abs(index - 2) == affectedRow || abs(index - 3) == affectedRow) {
+                        node.put("error", "Selected row does not belong to the current player.");
+                    } else {
+                        player.hero.kingMudface(gameTable.get(affectedRow));
+                        player.mana -= player.hero.getMana();
+                        node.removeAll();
+                    }
+                    break;
+
+                case "General Kocioraw": //+1 attack toti pe rand
+                    if (abs(index - 2) == affectedRow || abs(index - 3) == affectedRow) {
+                        node.put("error", "Selected row does not belong to the current player.");
+                    } else {
+                        player.hero.generalKocioraw(gameTable.get(affectedRow));
+                        player.mana -= player.hero.getMana();
+                        node.removeAll();
+                    }
+                    break;
+            }
+        }
+
         return node;
     }
 }

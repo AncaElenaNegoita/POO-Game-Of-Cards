@@ -127,6 +127,47 @@ public class Game {
                     node.put("command", action.getCommand());
                     arrayNode = functions.getFrozenCards(gameTable, arrayNode);
                     node.putPOJO("output", arrayNode);
+                } else if (action.getCommand().equals("cardUsesAttack")) {
+                    if (switchPlayer == 1) {
+                        node = functions.cardAttack(action, node, gameTable, 3);
+                    } else {
+                        node = functions.cardAttack(action, node, gameTable, 0);
+                    }
+                } else if (action.getCommand().equals("cardUsesAbility")) {
+                    if (switchPlayer == 1) {
+                        node = functions.cardUsesAbility(action, node, gameTable, 3);
+                    } else {
+                        node = functions.cardUsesAbility(action, node, gameTable, 0);
+                    }
+                } else if (action.getCommand().equals("useAttackHero")) {
+                    if (switchPlayer == 1) {
+                        node = functions.useAttackHero(action, node, player2, 3, gameTable);
+                        if (player2.hero.getHealth() <= 0) {
+                            player1Win++;
+                            node.put("gameEnded", "Player one killed the enemy hero.");
+                        }
+                    } else {
+                        node = functions.useAttackHero(action, node, player1, 0, gameTable);
+                        if (player1.hero.getHealth() <= 0) {
+                            player2Win++;
+                            node.put("gameEnded", "Player two killed the enemy hero.");
+                        }
+                    }
+                } else if (action.getCommand().equals("useHeroAbility")) {
+                    if (switchPlayer == 1) {
+                        node = functions.useHeroAbility(action, node, player1, gameTable, 3);
+                    } else {
+                        node = functions.useHeroAbility(action, node, player2, gameTable, 0);
+                    }
+                } else if (action.getCommand().equals("getPlayerOneWins")) {
+                    node.put("command", action.getCommand());
+                    node.put("output", player1Win);
+                } else if (action.getCommand().equals("getPlayerTwoWins")) {
+                    node.put("command", action.getCommand());
+                    node.put("output", player2Win);
+                } else if (action.getCommand().equals("getTotalGamesPlayed")) {
+                    node.put("command", action.getCommand());
+                    node.put("output", player1Win + player2Win);
                 }
 
                 if (!node.isEmpty())
