@@ -8,23 +8,30 @@ import fileio.*;
 
 import java.util.ArrayList;
 
-public class Game {
-    ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    Player player1;
-    Player player2;
-    int switchPlayer;
-    int countRounds;
-    int player1Win = 0;
-    int player2Win = 0;
-    CommandHelpfulFunctions functions = new CommandHelpfulFunctions();
+public final class Game {
+    private ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private Player player1;
+    private Player player2;
+    private int switchPlayer;
+    private int countRounds;
+    private int player1Win = 0;
+    private int player2Win = 0;
+    static final int PLAYER1ROW = 3;
+    static final int ALLROW = 4;
+    private CommandHelpfulFunctions functions = new CommandHelpfulFunctions();
 
-    public void Actions(Input input, ArrayNode output) {
+    /**
+     *
+     * @param input
+     * @param output
+     */
+    public void actions(final Input input, final ArrayNode output) {
         for (GameInput game : input.getGames()) {
             ArrayList<ArrayList<Minion>> gameTable = new ArrayList<>();
             countRounds = 2;
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < ALLROW; i++) {
                 gameTable.add(new ArrayList<>());
-
+            }
             player1 = new Player(1, game.getStartGame().getPlayerOneDeckIdx(), input, game);
             player2 = new Player(2, game.getStartGame().getPlayerTwoDeckIdx(), input, game);
             switchPlayer = game.getStartGame().getStartingPlayer();
@@ -41,45 +48,34 @@ public class Game {
                         node.putPOJO("output", new ArrayList<>(player2.deck));
                     }
                 } else if (action.getCommand().equals("getPlayerHero")) {
-                    node.put("command", action.getCommand());
-                    node.put("playerIdx", action.getPlayerIdx());
-                    if (action.getPlayerIdx() == 1) {
-                        node.putPOJO("output", new Hero(player1.hero));
-                    } else {
-                        node.putPOJO("output", new Hero(player2.hero));
-                    }
+                    node = functions.getPlayerHero(action, node, player1, player2);
                 } else if (action.getCommand().equals("getPlayerTurn")) {
                     node.put("command", action.getCommand());
                     node.putPOJO("output", switchPlayer);
                 } else if (action.getCommand().equals("placeCard")) {
-                    node = functions.placeCard(action, player1, player2, switchPlayer, node, gameTable);
+                    node = functions.placeCard(action, player1, player2,
+                            switchPlayer, node, gameTable);
                 } else if (action.getCommand().equals("endPlayerTurn")) {
-                    countRounds++;
-                    if (countRounds % 2 == 0) {
-                        player1.mana += countRounds / 2;
-                        player2.mana += countRounds / 2;
-                        functions.drawCard(player1);
-                        functions.drawCard(player2);
-                    }
-
+                    countRounds = functions.verifyCount(player1, player2, countRounds);
                     if (switchPlayer == 1) {
                         switchPlayer++;
-                        functions.resetMinionsStatus(3, gameTable, player1);
+                        functions.resetMinionsStatus(PLAYER1ROW, gameTable, player1);
                     } else {
                         switchPlayer--;
-                        functions.resetMinionsStatus( 0, gameTable, player2);
+                        functions.resetMinionsStatus(0, gameTable, player2);
                     }
                 } else if (action.getCommand().equals("getPlayerMana")) {
                     node.put("command", action.getCommand());
                     node.put("playerIdx", action.getPlayerIdx());
-                    if (action.getPlayerIdx() == 1)
+                    if (action.getPlayerIdx() == 1) {
                         node.put("output", player1.mana);
-                    else
+                    } else {
                         node.put("output", player2.mana);
+                    }
                 } else if (action.getCommand().equals("getCardsOnTable")) {
                     node.put("command", action.getCommand());
                     ArrayList<ArrayList<Minion>> tableCopy = new ArrayList<>();
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < ALLROW; i++) {
                         tableCopy.add(new ArrayList<>());
                         for (int j = 0; j < gameTable.get(i).size(); j++) {
                             tableCopy.get(i).add(gameTable.get(i).get(j));
@@ -114,10 +110,11 @@ public class Game {
                 } else if (action.getCommand().equals("getEnvironmentCardsInHand")) {
                     node.put("command", action.getCommand());
                     node.put("playerIdx", action.getPlayerIdx());
-                    if (action.getPlayerIdx() == 1)
+                    if (action.getPlayerIdx() == 1) {
                         node.putPOJO("output", new ArrayList<>(player1.handEnvironmentCards()));
-                    else
+                    } else {
                         node.putPOJO("output", new ArrayList<>(player2.handEnvironmentCards()));
+                    }
                 } else if (action.getCommand().equals("useEnvironmentCard")) {
                     node = functions.useEnvironmentCard(action, node, player1, player2,
                             switchPlayer, gameTable);
@@ -129,19 +126,20 @@ public class Game {
                     node.putPOJO("output", arrayNode);
                 } else if (action.getCommand().equals("cardUsesAttack")) {
                     if (switchPlayer == 1) {
-                        node = functions.cardAttack(action, node, gameTable, 3);
+                        node = functions.cardAttack(action, node, gameTable, PLAYER1ROW);
                     } else {
                         node = functions.cardAttack(action, node, gameTable, 0);
                     }
                 } else if (action.getCommand().equals("cardUsesAbility")) {
                     if (switchPlayer == 1) {
-                        node = functions.cardUsesAbility(action, node, gameTable, 3);
+                        node = functions.cardUsesAbility(action, node, gameTable, PLAYER1ROW);
                     } else {
                         node = functions.cardUsesAbility(action, node, gameTable, 0);
                     }
                 } else if (action.getCommand().equals("useAttackHero")) {
                     if (switchPlayer == 1) {
-                        node = functions.useAttackHero(action, node, player2, 3, gameTable);
+                        node = functions.useAttackHero(action, node, player2, PLAYER1ROW,
+                                gameTable);
                         if (player2.hero.getHealth() <= 0) {
                             player1Win++;
                             node.put("gameEnded", "Player one killed the enemy hero.");
@@ -155,7 +153,8 @@ public class Game {
                     }
                 } else if (action.getCommand().equals("useHeroAbility")) {
                     if (switchPlayer == 1) {
-                        node = functions.useHeroAbility(action, node, player1, gameTable, 3);
+                        node = functions.useHeroAbility(action, node, player1, gameTable,
+                                PLAYER1ROW);
                     } else {
                         node = functions.useHeroAbility(action, node, player2, gameTable, 0);
                     }
@@ -170,8 +169,9 @@ public class Game {
                     node.put("output", player1Win + player2Win);
                 }
 
-                if (!node.isEmpty())
+                if (!node.isEmpty()) {
                     output.add(node);
+                }
             }
         }
     }

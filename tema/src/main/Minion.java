@@ -4,12 +4,12 @@ import fileio.CardInput;
 
 import java.util.ArrayList;
 
-public class Minion extends CardInput {
+public final class Minion extends CardInput {
     Boolean stunnedMinion = false;
     Boolean attackedAnotherCard = false;
 
-    public Minion() {}
-    public Minion(CardInput card) {
+    public Minion() { }
+    public Minion(final CardInput card) {
         this.name = card.getName();
         this.attackDamage = card.getAttackDamage();
         this.colors = card.getColors();
@@ -18,7 +18,15 @@ public class Minion extends CardInput {
         this.health = card.getHealth();
     }
 
-    public boolean gotAttacked (Minion attacker, ArrayList<Minion> rowCards, int index) {
+    /**
+     *
+     * @param attacker
+     * @param rowCards
+     * @param index
+     * @return
+     */
+    public boolean gotAttacked(final Minion attacker, final ArrayList<Minion> rowCards,
+                               final int index) {
         health -= attacker.getAttackDamage();
         attacker.setAttackedAnotherCard(true);
         if (health <= 0) {
@@ -28,25 +36,39 @@ public class Minion extends CardInput {
         return false;
     }
 
-    public void setAttackedAnotherCard(Boolean attackedAnotherCard) {
+    public void setAttackedAnotherCard(final Boolean attackedAnotherCard) {
         this.attackedAnotherCard = attackedAnotherCard;
     }
 
-    public void theRipper (Minion attacker) {
+    /**
+     *
+     * @param attacker
+     */
+    public void theRipper(final Minion attacker) {
         attackDamage -= 2;
-        if (attackDamage < 0)
+        if (attackDamage < 0) {
             attackDamage = 0;
+        }
         attacker.setAttackedAnotherCard(true);
     }
 
-    public void miraj (Minion attacker) {
+    /**
+     *
+     * @param attacker
+     */
+    public void miraj(final Minion attacker) {
         int copyHealth = health;
         health = attacker.getHealth();
         attacker.setHealth(copyHealth);
         attacker.setAttackedAnotherCard(true);
     }
 
-    public Boolean theCursedOne (Minion attacker) {
+    /**
+     *
+     * @param attacker
+     * @return
+     */
+    public Boolean theCursedOne(final Minion attacker) {
         int copyElem = health;
         health = attackDamage;
         attackDamage = copyElem;
@@ -57,7 +79,10 @@ public class Minion extends CardInput {
         return false;
     }
 
-    public void disciple () {
+    /**
+     *
+     */
+    public void disciple() {
         health += 2;
         this.setAttackedAnotherCard(true);
     }

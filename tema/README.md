@@ -1,4 +1,4 @@
-
+// @CopyRight Negoita Anca-Elena, 321CA
 
 # Tema POO  - GwentStone
 
@@ -42,3 +42,27 @@
 
 
 <div align="center"><img src="https://tenor.com/view/homework-time-gif-24854817.gif" width="500px"></div>
+
+## The Goal
+
+The purpose of this project is to deepen the basic knowledge in Java through implementation
+and the use of methods and classes necessary for each action.
+
+A game contains several commands with different conditions depending on the current player and
+the desired outcome. If a given command has conditions that cannot be fulfilled, then it
+generates a specific error depending on the case. If it doesn't find any errors in the end,
+it puts in the output node the position of a card, all cards on the game table, or nothing at
+all. The goal is to win the game by attacking the enemy's hero and, in order to do so, it needs
+a lot of thinking and strategies.
+
+For example, the function "cardUsesAttack" is used by a player to attack with a card on the game 
+table another card that is from the enemy. The coordinates are verified in order to really attack
+the enemy card, and after that it is verified if the attacked card is a Tank (it must be situated
+in the front row), or it is a Minion and there are no Tanks on the table. After that, if the player
+has enough mana, it attacks the card and lowers its health. In this example, if it attacks the 
+card, nothing will be shown in the output.
+
+After a hero dies, the output displays a message where it specifies who won. In order to win the
+game, the enemy's hero needs to be killed(have 0 health) and this can be done by attacking him
+with the cards that are placed on the game table. A new game can be started and all the fields 
+are reset.
