@@ -126,4 +126,111 @@ public final class CommandHelpfulFunctions {
             player.deck.remove(0);
         }
     }
+
+    /**
+     *
+     * @param action
+     * @param node
+     * @param player
+     * @param gameTable
+     * @param playerRow
+     */
+    public void verifyConditionsEnvironment(final ActionsInput action, final ObjectNode node,
+                                             final Player player,
+                                             final ArrayList<ArrayList<Minion>> gameTable,
+                                             final int playerRow) {
+        CardInput card = player.handCards.get(action.getHandIdx());
+        Environment envCard = new Environment();
+        int index = action.getAffectedRow();
+        node.put("command", action.getCommand());
+        node.put("handIdx", action.getHandIdx());
+        node.put("affectedRow", index);
+
+        if (card.getHealth() != 0) {
+            node.put("error", "Chosen card is not of type environment.");
+        } else {
+            if (player.mana < card.getMana()) {
+                node.put("error", "Not enough mana to use environment card.");
+            } else {
+                if (action.getAffectedRow() == playerRow
+                        || action.getAffectedRow() == abs(playerRow - 1)) {
+                    node.put("error", "Chosen row does not belong to the enemy.");
+                } else {
+                    switch (card.getName()) {
+                        case "Firestorm" :
+                            envCard.firestorm(gameTable, index);
+                            node.removeAll();
+                            break;
+
+                        case "Winterfell" :
+                            envCard.winterfell(gameTable.get(index));
+                            node.removeAll();
+                            break;
+
+                        default:
+                            if (gameTable.get(3 - index).size() == 5) {
+                                node.put("error", "Cannot steal enemy card since the player's row is full.");
+                            } else {
+                                envCard.heartHound(action.getHandIdx(), gameTable, index);
+                                node.removeAll();
+                            }
+                            break;
+                    }
+                    if (node.isEmpty()) {
+                        player.mana -= card.getMana();
+                        player.handCards.remove(action.getHandIdx());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     * @param action
+     * @param node
+     * @param player1
+     * @param player2
+     * @param switchPlayer
+     * @param gameTable
+     * @return
+     */
+    public ObjectNode useEnvironmentCard(final ActionsInput action, final ObjectNode node,
+                                         final Player player1,
+                                         final Player player2, final int switchPlayer,
+                                         final ArrayList<ArrayList<Minion>> gameTable) {
+        if (switchPlayer == 1)
+            verifyConditionsEnvironment(action, node, player1, gameTable, 3);
+        else
+            verifyConditionsEnvironment(action, node, player2, gameTable, 0);
+        return node;
+    }
+
+    public ArrayNode getFrozenCards(final ArrayList<ArrayList<Minion>> gameTable, final ArrayNode arrayNode) {
+        for (int i = 0; i < gameTable.size(); i++) {
+            for (int j = 0; j < gameTable.get(i).size(); j++) {
+                if (gameTable.get(i).get(j).stunnedMinion) {
+                    arrayNode.addPOJO(new Minion(gameTable.get(i).get(j)));
+                }
+            }
+        }
+        return arrayNode;
+    }
+
+    public ObjectNode getCardAtPosition(final ActionsInput action, final ObjectNode node,
+                                        final ArrayList<ArrayList<Minion>> gameTable) {
+        node.put("command", action.getCommand());
+        node.put("x", action.getX());
+        node.put("y", action.getY());
+        if (gameTable.size() < action.getX()) {
+            node.put("output", "No card available at that position.");
+        } else {
+            if (gameTable.get(action.getX()).size() < action.getY()) {
+                node.put("output", "No card available at that position.");
+            } else {
+                node.putPOJO("output", new Minion(gameTable.get(action.getX()).get(action.getY())));
+            }
+        }
+        return node;
+    }
 }

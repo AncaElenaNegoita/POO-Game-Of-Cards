@@ -87,6 +87,46 @@ public class Game {
                         arrayNode.addPOJO(new ArrayList<>(tableCopy.get(i)));
                     }
                     node.putPOJO("output", arrayNode);
+                } else if (action.getCommand().equals("getCardsInHand")) {
+                    node.put("command", action.getCommand());
+                    node.put("playerIdx", action.getPlayerIdx());
+                    if (action.getPlayerIdx() == 1) {
+                        ArrayList<CardInput> cardsCopy = new ArrayList<>();
+                        for (CardInput card: player1.handCards) {
+                            if (card.getHealth() == 0) {
+                                cardsCopy.add(new Environment(card));
+                            } else {
+                                cardsCopy.add(new Minion(card));
+                            }
+                        }
+                        node.putPOJO("output", new ArrayList<>(cardsCopy));
+                    } else {
+                        ArrayList<CardInput> cardsCopy = new ArrayList<>();
+                        for (CardInput card: player2.handCards) {
+                            if (card.getHealth() == 0) {
+                                cardsCopy.add(new Environment(card));
+                            } else {
+                                cardsCopy.add(new Minion(card));
+                            }
+                        }
+                        node.putPOJO("output", new ArrayList<>(cardsCopy));
+                    }
+                } else if (action.getCommand().equals("getEnvironmentCardsInHand")) {
+                    node.put("command", action.getCommand());
+                    node.put("playerIdx", action.getPlayerIdx());
+                    if (action.getPlayerIdx() == 1)
+                        node.putPOJO("output", new ArrayList<>(player1.handEnvironmentCards()));
+                    else
+                        node.putPOJO("output", new ArrayList<>(player2.handEnvironmentCards()));
+                } else if (action.getCommand().equals("useEnvironmentCard")) {
+                    node = functions.useEnvironmentCard(action, node, player1, player2,
+                            switchPlayer, gameTable);
+                } else if (action.getCommand().equals("getCardAtPosition")) {
+                    node = functions.getCardAtPosition(action, node, gameTable);
+                } else if (action.getCommand().equals("getFrozenCardsOnTable")) {
+                    node.put("command", action.getCommand());
+                    arrayNode = functions.getFrozenCards(gameTable, arrayNode);
+                    node.putPOJO("output", arrayNode);
                 }
 
                 if (!node.isEmpty())
